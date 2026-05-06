@@ -1,0 +1,7 @@
+path: dataset
+train: images/train
+val: images/val
+nc: 2
+names:
+  - pe_abacaxi
+  - olho_abacaxi

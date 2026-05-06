@@ -1,12 +1,100 @@
-# Python-generated files
+# Projeto IFPB - .gitignore seguro e enxuto
+
+# Python
 __pycache__/
-*.py[oc]
+*.py[cod]
+*.pyo
+*.pyd
+*.so
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
+*.egg
+.eggs/
+pip-wheel-metadata/
 
-# Virtual environments
-.venv
+# Ambientes virtuais
+.venv/
+venv/
+env/
+ENV/
 
-/modelo
+# Segredos / credenciais locais
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+secrets.*
+credentials*.json
+service-account*.json
+token*.json
+
+# Pesos e artefatos de modelos (arquivos grandes)
+*.pt
+*.pth
+*.onnx
+*.torchscript
+*.engine
+*.keras
+*.h5
+/modelo_yolo/
+/modelo/
+
+# Saidas de treino/inferencia
+/runs/
+*_resultado.jpg
+*_resultado.png
+/demo_deteccoes/
+treinamento_grafico.png
+treinamento_yolos.png
+results.png
+
+# Dataset bruto e midias grandes
+/images/
+/fotosAntigas/
+dataset/**/images/
+dataset/**/videos/
+dataset/folhagem/
+dataset/fruto_sozinho/
+dataset/**/*.jpg
+dataset/**/*.jpeg
+dataset/**/*.png
+dataset/**/*.webp
+
+# Mantem apenas labels e configuracoes do dataset
+!dataset/**/labels/
+!dataset/**/labels/**/*.txt
+!dataset/**/*.yaml
+dataset/**/*.cache
+
+# Cache e logs
+.cache/
+ultralytics/
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+
+# Sistema operacional
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Notebooks e temporarios
+.ipynb_checkpoints/
+*.ipynb
+*.tmp
+*.bak
+*.swp
