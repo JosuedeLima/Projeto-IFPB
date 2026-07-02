@@ -188,7 +188,8 @@ def index():
 
 
 if FRONTEND_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+    # html=False: nunca lista diretórios nem expõe estrutura de pastas
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR), html=False), name="static")
 
 
 def porta_disponivel(host: str, porta: int) -> bool:

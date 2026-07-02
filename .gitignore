@@ -43,11 +43,15 @@ token*.json
 *.engine
 *.keras
 *.h5
-backend/modelo_yolo/*
-!backend/modelo_yolo/detector_abacaxi.pt
+# Manter o modelo treinado no repositório (6 MB — dentro do limite do GitHub)
+# Excluir apenas formatos alternativos/temporários
+backend/modelo_yolo/*.onnx
+backend/modelo_yolo/*.torchscript
+backend/modelo_yolo/*.engine
 backend/yolov8n.pt
 
 # Saidas de treino/inferencia
+backend/runs/
 /runs/
 *_resultado.jpg
 *_resultado.png
