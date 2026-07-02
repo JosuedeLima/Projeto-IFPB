@@ -14,6 +14,7 @@ const COLORS = {
 const $ = (id) => document.getElementById(id);
 
 const video = $("video");
+const staticImg = $("staticImg");
 const overlay = $("overlay");
 const placeholder = $("placeholder");
 const viewerFrame = document.querySelector(".viewer__frame");
@@ -183,22 +184,21 @@ function loadStaticImage(file) {
   btnCamera.classList.add("btn--primary");
 
   const url = URL.createObjectURL(file);
-  const img = new Image();
-  img.onload = () => {
+  staticImg.onload = () => {
     URL.revokeObjectURL(url);
-    staticImage = img;
+    staticImage = staticImg;
     video.hidden = true;
+    staticImg.hidden = false;
     placeholder.hidden = true;
-    resizeOverlayForImage(img.width, img.height);
+    resizeOverlay();
     running = true;
     tick();
-    scheduleLoop();
   };
-  img.onerror = () => {
+  staticImg.onerror = () => {
     URL.revokeObjectURL(url);
     showError("Não foi possível carregar a imagem.");
   };
-  img.src = url;
+  staticImg.src = url;
 }
 
 function stopCamera(resetUi = true) {
@@ -217,8 +217,11 @@ function stopCamera(resetUi = true) {
     imageMode = false;
     staticImage = null;
     video.hidden = false;
+    staticImg.hidden = true;
+    staticImg.src = "";
     placeholder.hidden = false;
     btnClearImage.hidden = true;
+    fileInput.value = "";
     btnCamera.textContent = "Iniciar câmera";
     btnCamera.classList.add("btn--primary");
     btnCamera.classList.remove("btn--danger");
@@ -230,16 +233,10 @@ function stopCamera(resetUi = true) {
   }
 }
 
-function resizeOverlayForImage(w, h) {
-  const frame = viewerFrame.getBoundingClientRect();
-  const scale = Math.min(frame.width / w, frame.height / h);
-  overlay.width = Math.round(w * scale);
-  overlay.height = Math.round(h * scale);
-}
-
 function resizeOverlay() {
   if (imageMode && staticImage) {
-    resizeOverlayForImage(staticImage.width, staticImage.height);
+    overlay.width = staticImage.naturalWidth || staticImage.width;
+    overlay.height = staticImage.naturalHeight || staticImage.height;
     return;
   }
   const w = video.videoWidth || overlay.clientWidth;
@@ -250,7 +247,7 @@ function resizeOverlay() {
 }
 
 function scheduleLoop() {
-  if (!running) return;
+  if (!running || imageMode) return;
   loopTimer = setTimeout(async () => {
     await tick();
     scheduleLoop();
@@ -283,10 +280,6 @@ async function tick() {
       ? `${(maxConf * 100).toFixed(1)}% Confiança` 
       : "— Confiança";
 
-    if (imageMode && staticImage) {
-      drawStaticImage();
-    }
-
     drawDetections(result.deteccoes, result.largura, result.altura);
     renderDetectionList(result.deteccoes);
     showError("");
@@ -296,11 +289,6 @@ async function tick() {
     inferBusy = false;
     viewerFrame.classList.remove("viewer__frame--processing");
   }
-}
-
-function drawStaticImage() {
-  if (!staticImage) return;
-  ctx.drawImage(staticImage, 0, 0, overlay.width, overlay.height);
 }
 
 function recordFps() {
@@ -359,11 +347,7 @@ function drawDetections(deteccoes, srcW, srcH) {
   const dh = overlay.height;
   if (!dw || !dh) return;
 
-  if (!imageMode) {
-    ctx.clearRect(0, 0, dw, dh);
-  } else if (staticImage) {
-    drawStaticImage();
-  }
+  ctx.clearRect(0, 0, dw, dh);
 
   const sx = dw / (srcW || dw);
   const sy = dh / (srcH || dh);
