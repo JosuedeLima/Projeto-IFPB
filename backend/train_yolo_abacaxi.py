@@ -52,14 +52,15 @@ if sys.platform == 'win32':
 # ============================================================================
 
 BASE_DIR    = Path(__file__).parent
-DATASET_DIR = BASE_DIR / "dataset"
+DATASET_DIR = BASE_DIR.parent / "dataset"  # dataset/ está na raiz do projeto
 MODEL_DIR   = BASE_DIR / "modelo_yolo"
 RUNS_DIR    = BASE_DIR / "runs"
 
-# Classes do detector
+# Classes do detector — ordem alinhada com as anotações do Roboflow
+# (classe 0 = olho_abacaxi, classe 1 = pe_abacaxi)
 CLASSES = {
-    0: "pe_abacaxi",    # Planta com folhagem → gatilho para verificar olho
-    1: "olho_abacaxi",  # Fruto no topo da folhagem → alvo da adubação
+    0: "olho_abacaxi",  # Fruto no topo da folhagem → alvo da adubação
+    1: "pe_abacaxi",    # Planta com folhagem → gatilho para verificar olho
 }
 
 # Parâmetros de treinamento
@@ -212,7 +213,7 @@ def verificar_dataset() -> bool:
             ok = False
         else:
             n_arquivos = len(list(pasta.iterdir()))
-            print(f"  [OK] {pasta.relative_to(BASE_DIR)} ({n_arquivos} arquivos)")
+            print(f"  [OK] {pasta.relative_to(DATASET_DIR.parent)} ({n_arquivos} arquivos)")
 
     if not ok:
         print("\n[ERRO] Dataset incompleto. Crie as pastas e adicione imagens anotadas.")
@@ -461,9 +462,9 @@ class RoboAdubador:
                 }
                 deteccoes.append(det)
 
-                if classe_id == 0:
+                if classe_id == 1:   # pe_abacaxi
                     pes.append(det)
-                elif classe_id == 1:
+                elif classe_id == 0:  # olho_abacaxi
                     olhos.append(det)
 
         frame_anotado = resultados[0].plot() if resultados else frame

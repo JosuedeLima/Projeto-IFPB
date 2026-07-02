@@ -1,7 +1,7 @@
 names:
-- pe_abacaxi
 - olho_abacaxi
+- pe_abacaxi
 nc: 2
 path: C:\Users\josu7\OneDrive\Documentos\projectIFPBComputerVison\dataset
 train: train/images
-val: val/images
+val: valid/images
