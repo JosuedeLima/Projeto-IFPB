@@ -26,7 +26,6 @@ const confRange = $("confRange");
 const confValue = $("confValue");
 const statusBadge = $("statusBadge");
 const modelAlert = $("modelAlert");
-const statFps = $("statFps");
 const statInfer = $("statInfer");
 const statCount = $("statCount");
 const statMaxConf = $("statMaxConf");
@@ -69,19 +68,12 @@ async function checkHealth() {
     statusBadge.className = "badge badge--ok";
 
     const diag = data.diagnostico || {};
-    if (diag.alerta) {
-      modelAlert.textContent = diag.alerta;
-      modelAlert.hidden = false;
-      if (diag.max_confianca != null && diag.max_confianca < 0.1) {
+    if (diag.max_confianca != null) {
+      statMaxConf.textContent = `${(diag.max_confianca * 100).toFixed(1)}%`;
+      if (diag.max_confianca < 0.1) {
         confRange.value = "1";
         updateConfLabel();
       }
-    } else if (diag.testado && diag.max_confianca != null) {
-      modelAlert.textContent = `Teste em ${diag.imagem}: confiança máxima ${(diag.max_confianca * 100).toFixed(1)}%.`;
-      modelAlert.hidden = false;
-      modelAlert.style.background = "rgba(34, 197, 94, 0.12)";
-      modelAlert.style.color = "#86efac";
-      modelAlert.style.borderColor = "rgba(34, 197, 94, 0.35)";
     }
     return true;
   } catch {
@@ -226,7 +218,6 @@ function stopCamera(resetUi = true) {
     btnCamera.classList.add("btn--primary");
     btnCamera.classList.remove("btn--danger");
     ctx.clearRect(0, 0, overlay.width, overlay.height);
-    statFps.textContent = "— FPS";
     statInfer.textContent = "— ms";
     statCount.textContent = "0 detecções";
     renderDetectionList([]);
@@ -269,7 +260,6 @@ async function tick() {
     const result = await sendFrame(frameBlob);
     const elapsed = performance.now() - t0;
 
-    recordFps();
     statInfer.textContent = `${result.tempo_ms ?? Math.round(elapsed)} ms`;
     statCount.textContent = `${result.deteccoes.length} detecção(ões)`;
 
@@ -277,7 +267,7 @@ async function tick() {
       ? Math.max(...result.deteccoes.map(d => d.confianca)) 
       : 0;
     statMaxConf.textContent = maxConf > 0 
-      ? `${(maxConf * 100).toFixed(1)}% Confiança` 
+      ? `${(maxConf * 100).toFixed(1)}%` 
       : "— Confiança";
 
     drawDetections(result.deteccoes, result.largura, result.altura);
@@ -289,13 +279,6 @@ async function tick() {
     inferBusy = false;
     viewerFrame.classList.remove("viewer__frame--processing");
   }
-}
-
-function recordFps() {
-  const now = performance.now();
-  frameTimes.push(now);
-  frameTimes = frameTimes.filter((t) => now - t < 1000);
-  statFps.textContent = `${frameTimes.length} FPS`;
 }
 
 async function captureFrameBlob() {

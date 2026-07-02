@@ -57,10 +57,10 @@ MODEL_DIR   = BASE_DIR / "modelo_yolo"
 RUNS_DIR    = BASE_DIR / "runs"
 
 # Classes do detector — ordem alinhada com as anotações do Roboflow
-# (classe 0 = olho_abacaxi, classe 1 = pe_abacaxi)
+# (classe 0 = pe_abacaxi, classe 1 = olho_abacaxi)
 CLASSES = {
-    0: "olho_abacaxi",  # Fruto no topo da folhagem → alvo da adubação
-    1: "pe_abacaxi",    # Planta com folhagem → gatilho para verificar olho
+    0: "pe_abacaxi",    # Planta com folhagem → gatilho para verificar olho
+    1: "olho_abacaxi",  # Fruto no topo da folhagem → alvo da adubação
 }
 
 # Parâmetros de treinamento
