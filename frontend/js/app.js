@@ -321,7 +321,7 @@ async function sendFrame(blob) {
   const form = new FormData();
   form.append("imagem", blob, "frame.jpg");
 
-  const res = await fetch(`${API_BASE}/api/detect?conf=${conf.toFixed(2)}`, {
+  const res = await fetch(`${API_BASE}/api/detect?conf=${conf}`, {
     method: "POST",
     body: form,
   });
