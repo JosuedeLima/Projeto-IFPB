@@ -283,9 +283,11 @@ async function tick() {
 
 async function captureFrameBlob() {
   if (imageMode && staticImage) {
-    captureCanvas.width = staticImage.width;
-    captureCanvas.height = staticImage.height;
-    captureCtx.drawImage(staticImage, 0, 0);
+    const w = staticImage.naturalWidth || staticImage.width || 640;
+    const h = staticImage.naturalHeight || staticImage.height || 640;
+    captureCanvas.width = w;
+    captureCanvas.height = h;
+    captureCtx.drawImage(staticImage, 0, 0, w, h);
   } else {
     const vw = video.videoWidth;
     const vh = video.videoHeight;
