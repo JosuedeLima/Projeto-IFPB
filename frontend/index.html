@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a3d2e" />
+  <meta name="description" content="Validação em tempo real do detector de abacaxi — IFPB" />
+  <title>Validador — Abacaxi IFPB</title>
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header__inner">
+      <div>
+        <p class="header__tag">IFPB · Visão computacional</p>
+        <h1 class="header__title">Validador do modelo</h1>
+        <p class="header__subtitle">Detecção em tempo real de <strong>pe_abacaxi</strong> e <strong>olho_abacaxi</strong></p>
+      </div>
+      <div id="statusBadge" class="badge badge--loading" role="status">Conectando…</div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div id="modelAlert" class="alert" role="status" hidden></div>
+
+    <section class="viewer" aria-label="Visualização da câmera">
+      <div class="viewer__frame">
+        <video id="video" class="viewer__video" playsinline muted autoplay></video>
+        <canvas id="overlay" class="viewer__overlay" aria-hidden="true"></canvas>
+        <div id="placeholder" class="viewer__placeholder">
+          <span class="viewer__icon" aria-hidden="true">📷</span>
+          <p>Toque em <strong>Iniciar câmera</strong> para validar o modelo</p>
+        </div>
+      </div>
+
+      <div class="viewer__stats" aria-live="polite">
+        <span id="statFps">— FPS</span>
+        <span id="statInfer">— ms</span>
+        <span id="statCount">0 detecções</span>
+        <span id="statMaxConf">— Confiança</span>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="Controles">
+      <div class="controls__row">
+        <button id="btnCamera" type="button" class="btn btn--primary">
+          Iniciar câmera
+        </button>
+        <button id="btnSwitch" type="button" class="btn btn--secondary" disabled hidden>
+          Trocar câmera
+        </button>
+      </div>
+
+      <div class="controls__row">
+        <label class="btn btn--secondary btn--file">
+          Testar imagem
+          <input id="fileInput" type="file" accept="image/*" hidden />
+        </label>
+        <button id="btnClearImage" type="button" class="btn btn--secondary" hidden>
+          Voltar à câmera
+        </button>
+      </div>
+
+      <label class="slider" for="confRange">
+        <span class="slider__label">Confiança mínima</span>
+        <span id="confValue" class="slider__value">1%</span>
+      </label>
+      <input id="confRange" type="range" min="1" max="95" value="1" step="1" class="slider__input" />
+      <p class="hint">Modelos em treino costumam exigir 1–10%. O robô usa 50% em produção.</p>
+
+      <fieldset class="legend">
+        <legend>Classes</legend>
+        <div class="legend__items">
+          <span class="legend__item legend__item--pe"><i></i> pe_abacaxi</span>
+          <span class="legend__item legend__item--olho"><i></i> olho_abacaxi</span>
+        </div>
+      </fieldset>
+    </section>
+
+    <section class="panel" aria-label="Detecções atuais">
+      <h2 class="panel__title">Detecções no frame</h2>
+      <ul id="detectionList" class="detection-list">
+        <li class="detection-list__empty">Nenhuma detecção ainda.</li>
+      </ul>
+    </section>
+
+    <p id="errorMsg" class="error" role="alert" hidden></p>
+  </main>
+
+  <footer class="footer">
+    <p>Use em campo apontando a câmera para as plantas. As caixas mostram o que o YOLOv8 enxerga.</p>
+  </footer>
+
+  <script src="/static/js/app.js" type="module"></script>
+</body>
+</html>

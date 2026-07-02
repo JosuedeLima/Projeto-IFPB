@@ -43,8 +43,9 @@ token*.json
 *.engine
 *.keras
 *.h5
-/modelo_yolo/
-/modelo/
+backend/modelo_yolo/*
+!backend/modelo_yolo/detector_abacaxi.pt
+backend/yolov8n.pt
 
 # Saidas de treino/inferencia
 /runs/

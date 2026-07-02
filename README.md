@@ -78,6 +78,8 @@ Motivos típicos de YOLOv8: velocidade em hardware modesto, bom desempenho com p
 ```
 projectIFPBComputerVison/
 ├── train_yolo_abacaxi.py      # Treino, teste estático e modo câmera (+ lógica do robô)
+├── api_server.py              # Servidor web para validação em tempo real
+├── frontend/                  # Interface responsiva (PC e celular)
 ├── prepare_dataset_robust.py # Prepara dataset: limpa labels, split, data.yaml local, relatório
 ├── prepare_annotations.py    # Valida formato e classes dos .txt
 ├── requirements.txt
@@ -191,6 +193,35 @@ python train_yolo_abacaxi.py --modo robo
 
 Saída opcional na janela OpenCV (`q` encerra).
 
+### 8. Validador web (câmera no navegador — PC ou celular)
+
+Interface para validar a acurácia do modelo sem hardware robótico: a câmera abre no navegador, os frames são enviados ao YOLOv8 e as caixas `pe_abacaxi` e `olho_abacaxi` aparecem em tempo real.
+
+**Pré-requisito:** modelo treinado em `modelo_yolo/detector_abacaxi.pt`.
+
+```bash
+python api_server.py
+```
+
+Abra no navegador: **http://127.0.0.1:8000**
+
+**No celular (mesma rede Wi-Fi):** descubra o IP do PC (`ipconfig` no Windows) e acesse `http://<IP-do-PC>:8000`. Toque em *Iniciar câmera* e aponte para as plantas.
+
+| Recurso | Descrição |
+|---------|-----------|
+| Caixas coloridas | Verde = `pe_abacaxi`, laranja = `olho_abacaxi` |
+| Confiança mínima | Slider ajusta o limiar enviado à API |
+| Trocar câmera | Alterna frontal/traseira ou entre webcams |
+| FPS / latência | Indicadores no rodapé do vídeo |
+
+**Observação:** em HTTP na rede local, alguns navegadores no celular podem exigir HTTPS para a câmera. Nesse caso, use o validador no PC ou configure HTTPS local (ex.: `mkcert`).
+
+Opções do servidor:
+
+```bash
+python api_server.py --modelo modelo_yolo/detector_abacaxi.pt --porta 8000 --host 0.0.0.0
+```
+
 ---
 
 
@@ -210,7 +241,7 @@ Em `runs/abacaxi_detector/` (local, normalmente não versionada): curvas de loss
 
 ## Dependências
 
-Ver [`requirements.txt`](requirements.txt): `ultralytics`, `opencv-python`, `Pillow`, `numpy`, `pyyaml`.
+Ver [`requirements.txt`](requirements.txt): `ultralytics`, `opencv-python`, `Pillow`, `numpy`, `pyyaml`, `fastapi`, `uvicorn`, `python-multipart`.
 
 ---
 
