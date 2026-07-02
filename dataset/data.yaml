@@ -3,5 +3,5 @@ names:
 - olho_abacaxi
 nc: 2
 path: C:\Users\josu7\OneDrive\Documentos\projectIFPBComputerVison\dataset
-train: train/images
-val: valid/images
+train: images/train
+val: images/val

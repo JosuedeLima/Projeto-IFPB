@@ -90,11 +90,12 @@ function showError(msg) {
 }
 
 function getConfidence() {
-  return Number(confRange.value) / 100;
+  return Number(confRange.value) / 1000;
 }
 
 function updateConfLabel() {
-  confValue.textContent = `${confRange.value}%`;
+  const pct = Number(confRange.value) / 10;
+  confValue.textContent = `${pct.toFixed(1)}%`;
 }
 
 async function listCameras() {
@@ -224,17 +225,22 @@ function stopCamera(resetUi = true) {
   }
 }
 
+// imgRenderRect: returns the actual rendered {x, y, w, h} of the image inside the canvas
+// when object-fit:contain is used (letterboxing).
+function imgRenderRect(imgNatW, imgNatH, canvasW, canvasH) {
+  const scale = Math.min(canvasW / imgNatW, canvasH / imgNatH);
+  const w = imgNatW * scale;
+  const h = imgNatH * scale;
+  return { x: (canvasW - w) / 2, y: (canvasH - h) / 2, w, h };
+}
+
 function resizeOverlay() {
-  if (imageMode && staticImage) {
-    overlay.width = staticImage.naturalWidth || staticImage.width;
-    overlay.height = staticImage.naturalHeight || staticImage.height;
-    return;
-  }
-  const w = video.videoWidth || overlay.clientWidth;
-  const h = video.videoHeight || overlay.clientHeight;
-  if (!w || !h) return;
-  overlay.width = w;
-  overlay.height = h;
+  // Always use the frame's CSS pixel dimensions for the canvas
+  const fw = viewerFrame.clientWidth;
+  const fh = viewerFrame.clientHeight;
+  if (!fw || !fh) return;
+  overlay.width = fw;
+  overlay.height = fh;
 }
 
 function scheduleLoop() {
@@ -334,13 +340,24 @@ function drawDetections(deteccoes, srcW, srcH) {
 
   ctx.clearRect(0, 0, dw, dh);
 
-  const sx = dw / (srcW || dw);
-  const sy = dh / (srcH || dh);
+  let ox = 0, oy = 0, rw = dw, rh = dh;
+
+  if (imageMode && staticImage) {
+    // Image uses object-fit:contain — compute the actual rendered rectangle
+    const natW = staticImage.naturalWidth || staticImage.width || srcW;
+    const natH = staticImage.naturalHeight || staticImage.height || srcH;
+    const rect = imgRenderRect(natW, natH, dw, dh);
+    ox = rect.x; oy = rect.y; rw = rect.w; rh = rect.h;
+  }
+
+  // Scale from model source size to rendered image size
+  const sx = rw / (srcW || rw);
+  const sy = rh / (srcH || rh);
 
   for (const det of deteccoes) {
     const [x1, y1, x2, y2] = det.bbox;
-    const px1 = x1 * sx;
-    const py1 = y1 * sy;
+    const px1 = ox + x1 * sx;
+    const py1 = oy + y1 * sy;
     const pw = (x2 - x1) * sx;
     const ph = (y2 - y1) * sy;
 

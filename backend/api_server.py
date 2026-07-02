@@ -39,7 +39,7 @@ DEFAULT_MODEL = MODEL_DIR / "detector_abacaxi.pt"
 IMAGES_DIR = BASE_DIR / "images"
 
 # Validador web usa limiar mais baixo que o robô (modelo em treino costuma ter conf baixa)
-WEB_CONF_DEFAULT = 0.01
+WEB_CONF_DEFAULT = 0.005
 
 from train_yolo_abacaxi import CLASSES, CONF_THRESHOLD, IMG_SIZE, RoboAdubador  # noqa: E402
 
@@ -142,7 +142,7 @@ def health():
 @app.post("/api/detect")
 async def detect(
     imagem: UploadFile = File(...),
-    conf: float = Query(default=WEB_CONF_DEFAULT, ge=0.01, le=0.99),
+    conf: float = Query(default=WEB_CONF_DEFAULT, ge=0.001, le=0.99),
 ):
     if robo is None:
         raise HTTPException(status_code=503, detail="Modelo não carregado.")

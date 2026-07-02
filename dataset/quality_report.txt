@@ -1,0 +1,35 @@
+
+======================================================================
+RELATORIO DE QUALIDADE DO DATASET
+======================================================================
+Arquivos de label processados: 21
+Arquivos com erros de formato: 0
+Linhas totais de anotacao: 42
+Linhas mantidas: 42
+Linhas convertidas de poligono para bbox: 0
+Linhas descartadas: 0
+Imagens sem label: 0
+Imagens sem objetos apos limpeza: 0
+
+Contagem de objetos (apos limpeza):
+  - pe_abacaxi (0): 21
+  - olho_abacaxi (1): 21
+
+Perfis de imagem no dataset:
+  - pe_e_olho: 21
+  - so_pe: 0
+  - so_olho: 0
+  - sem_objetos: 0
+
+Split final -> train: 17 | val: 4
+Distribuicao train por perfil:
+  - pe_e_olho: 17
+  - so_pe: 0
+  - so_olho: 0
+  - sem_objetos: 0
+Distribuicao val por perfil:
+  - pe_e_olho: 4
+  - so_pe: 0
+  - so_olho: 0
+  - sem_objetos: 0
+======================================================================
