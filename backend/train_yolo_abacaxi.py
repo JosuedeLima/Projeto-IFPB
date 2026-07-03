@@ -226,8 +226,9 @@ def verificar_dataset() -> bool:
         print("       Esperado: 'dataset/valid/images', 'dataset/val/images' ou 'dataset/images/val'.")
         return False
 
-    imgs_train = list(train_img_path.glob("*.jpg")) + list(train_img_path.glob("*.png"))
-    imgs_val   = list(val_img_path.glob("*.jpg")) + list(val_img_path.glob("*.png")) if val_img_path.exists() else []
+    exts = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
+    imgs_train = [p for p in train_img_path.iterdir() if p.suffix.lower() in exts]
+    imgs_val   = [p for p in val_img_path.iterdir() if p.suffix.lower() in exts] if val_img_path.exists() else []
 
     if len(imgs_train) == 0:
         print("\n[ERRO] Nenhuma imagem encontrada em images/train/")
@@ -301,7 +302,8 @@ def treinar():
         batch     = BATCH_SIZE,
         name      = "abacaxi_detector",
         project   = str(RUNS_DIR),
-        patience  = 20,
+        patience  = 0,
+        workers   = 0,
         save      = True,
         plots     = True,
         verbose   = True,
@@ -327,7 +329,15 @@ def treinar():
     print(f"Tempo total: {minutos}m {segundos}s")
     print("=" * 60)
 
-    melhor_modelo = RUNS_DIR / "abacaxi_detector" / "weights" / "best.pt"
+    # Busca dinâmica pela pasta de run mais recente (evita usar pesos desatualizados de runs anteriores)
+    candidatos = list(RUNS_DIR.glob("abacaxi_detector*"))
+    if candidatos:
+        candidatos.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+        melhor_modelo = candidatos[0] / "weights" / "best.pt"
+        print(f"[INFO] Usando pesos da pasta de run mais recente: {candidatos[0].name}")
+    else:
+        melhor_modelo = RUNS_DIR / "abacaxi_detector" / "weights" / "best.pt"
+
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     destino = MODEL_DIR / "detector_abacaxi.pt"
 
@@ -337,7 +347,6 @@ def treinar():
         print(f"\n[SALVO] Melhor modelo salvo em: {destino}")
     else:
         print(f"\n[AVISO] Modelo não encontrado em {melhor_modelo}")
-        print(f"        Verifique a pasta runs/abacaxi_detector/weights/")
 
     print("\n[INFO] Gráficos salvos em: runs/abacaxi_detector/")
     print("       (loss, precision, recall, mAP — abra results.png)")

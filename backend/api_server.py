@@ -160,15 +160,24 @@ async def detect(
     resultado = robo.detectar_frame(frame, conf=conf, imgsz=IMG_SIZE)
     tempo_ms = (time.perf_counter() - t0) * 1000
 
-    deteccoes = []
+    # Monta lista completa
+    todas = []
     for det in resultado["deteccoes"]:
-        deteccoes.append({
+        todas.append({
             "classe": det["classe"],
             "classe_id": det["classe_id"],
             "confianca": det["confianca"],
             "bbox": det["bbox"],
             "centro": list(det["centro"]),
         })
+
+    # Mantém apenas a detecção de maior confiança por classe (máx. 1 por classe = 2 boxes)
+    melhor_por_classe: dict = {}
+    for det in todas:
+        cid = det["classe_id"]
+        if cid not in melhor_por_classe or det["confianca"] > melhor_por_classe[cid]["confianca"]:
+            melhor_por_classe[cid] = det
+    deteccoes = list(melhor_por_classe.values())
 
     return {
         "deteccoes": deteccoes,
