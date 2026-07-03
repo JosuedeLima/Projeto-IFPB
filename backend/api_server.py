@@ -16,6 +16,7 @@ Para testar no celular na mesma rede: http://<IP-do-PC>:8000
 from __future__ import annotations
 
 import argparse
+import csv
 import socket
 import sys
 import time
@@ -46,6 +47,7 @@ from train_yolo_abacaxi import CLASSES, CONF_THRESHOLD, IMG_SIZE, RoboAdubador  
 robo: RoboAdubador | None = None
 modelo_carregado: str | None = None
 diagnostico_modelo: dict = {}
+metricas_treino: dict = {}
 
 
 def _avaliar_modelo(detector: RoboAdubador) -> dict:
@@ -91,8 +93,81 @@ def _avaliar_modelo(detector: RoboAdubador) -> dict:
     }
 
 
+def _extrair_metricas_treino(caminho_modelo: Path) -> dict:
+    """Lê results.csv do run correspondente ao modelo e retorna as métricas reais."""
+    # O modelo fica em runs/<nome_run>/weights/best.pt ou last.pt
+    # results.csv está em runs/<nome_run>/results.csv
+    runs_dir = caminho_modelo.parent.parent  # weights/ -> run_dir
+    results_csv = runs_dir / "results.csv"
+    args_yaml = runs_dir / "args.yaml"
+
+    metricas: dict = {
+        "disponivel": False,
+        "run": runs_dir.name,
+    }
+
+    # Lê total de imagens de treino e validação do data.yaml
+    data_yaml_path: Path | None = None
+    if args_yaml.exists():
+        with open(args_yaml, encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("data:"):
+                    data_yaml_path = Path(line.split(":", 1)[1].strip())
+                    break
+
+    if data_yaml_path and data_yaml_path.exists():
+        dataset_base = data_yaml_path.parent
+        train_imgs = dataset_base / "train" / "images"
+        val_imgs = dataset_base / "valid" / "images"
+        test_imgs = dataset_base / "test" / "images"
+        n_train = len(list(train_imgs.glob("*.*"))) if train_imgs.exists() else 0
+        n_val = len(list(val_imgs.glob("*.*"))) if val_imgs.exists() else 0
+        n_test = len(list(test_imgs.glob("*.*"))) if test_imgs.exists() else 0
+        metricas["dataset"] = {
+            "total": n_train + n_val + n_test,
+            "treino": n_train,
+            "validacao": n_val,
+            "teste": n_test,
+        }
+
+    if not results_csv.exists():
+        metricas["motivo"] = "results.csv não encontrado."
+        return metricas
+
+    # Lê CSV e encontra a época com melhor mAP@50
+    melhor: dict | None = None
+    total_epocas = 0
+    with open(results_csv, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        # Remove espaços dos cabeçalhos
+        reader.fieldnames = [h.strip() for h in (reader.fieldnames or [])]
+        for row in reader:
+            total_epocas += 1
+            try:
+                map50 = float(row.get("metrics/mAP50(B)", 0) or 0)
+                if melhor is None or map50 > melhor["map50"]:
+                    melhor = {
+                        "epoca": int(float(row.get("epoch", 0))),
+                        "map50": round(map50, 4),
+                        "map50_95": round(float(row.get("metrics/mAP50-95(B)", 0) or 0), 4),
+                        "precisao": round(float(row.get("metrics/precision(B)", 0) or 0), 4),
+                        "recall": round(float(row.get("metrics/recall(B)", 0) or 0), 4),
+                        "val_box_loss": round(float(row.get("val/box_loss", 0) or 0), 4),
+                        "val_cls_loss": round(float(row.get("val/cls_loss", 0) or 0), 4),
+                    }
+            except (ValueError, TypeError):
+                continue
+
+    if melhor:
+        metricas["disponivel"] = True
+        metricas["total_epocas"] = total_epocas
+        metricas["melhor_epoca"] = melhor
+
+    return metricas
+
+
 def carregar_modelo(caminho: Path) -> None:
-    global robo, modelo_carregado, diagnostico_modelo
+    global robo, modelo_carregado, diagnostico_modelo, metricas_treino
     if not caminho.exists():
         raise FileNotFoundError(
             f"Modelo não encontrado: {caminho}\n"
@@ -101,6 +176,7 @@ def carregar_modelo(caminho: Path) -> None:
     robo = RoboAdubador(str(caminho))
     modelo_carregado = str(caminho.resolve())
     diagnostico_modelo = _avaliar_modelo(robo)
+    metricas_treino = _extrair_metricas_treino(caminho)
 
 
 @asynccontextmanager
@@ -136,6 +212,7 @@ def health():
         "conf_robo": CONF_THRESHOLD,
         "conf_web_padrao": WEB_CONF_DEFAULT,
         "diagnostico": diagnostico_modelo,
+        "metricas_treino": metricas_treino,
     }
 
 
